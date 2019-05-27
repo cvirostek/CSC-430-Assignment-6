@@ -21,14 +21,6 @@ defmodule LamC do
     defstruct [:param, :body]
 end
 
-defmodule NumV do
-    defstruct [:n]
-end
-
-defmodule StringV do
-    defstruct [:str]
-end
-
 defmodule BoolV do
     defstruct [:b]
 end
@@ -48,12 +40,15 @@ defmodule Main do
                 IO.puts s
             %NumC{n: n} ->
                 IO.puts n
+	    %StringC{str: str} ->
+		IO.puts str
         end
     end
 
     def main do
         interp(%IdC{s: :a}, %{})
         interp(%NumC{n: 1}, %{})
+        interp(%StringC{str: "test"}, %{})
     end
 end
 
