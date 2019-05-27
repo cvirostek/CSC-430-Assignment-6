@@ -1,9 +1,44 @@
 defmodule IdC do
     defstruct [:s]
 end
-
 defmodule NumC do
     defstruct [:n]
+end
+
+defmodule StringC do
+    defstruct [:str]
+end
+
+defmodule IfC do
+    defstruct [:test, :th, :el]
+end
+
+defmodule AppC do
+    defstruct [:fun, :args]
+end
+
+defmodule LamC do
+    defstruct [:param, :body]
+end
+
+defmodule NumV do
+    defstruct [:n]
+end
+
+defmodule StringV do
+    defstruct [:str]
+end
+
+defmodule BoolV do
+    defstruct [:b]
+end
+
+defmodule PrimV do
+    defstruct [:p]
+end
+
+defmodule ClosV do
+    defstruct [:param, :body, :env]
 end
 
 defmodule Main do
