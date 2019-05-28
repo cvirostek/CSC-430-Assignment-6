@@ -51,7 +51,11 @@ defmodule Main do
     def interp(exp, env) do
         case exp do
             %IdC{s: s} ->
-                env[s]
+                if env[s] != nil do
+                    env[s]
+                else
+                    raise "ZNQR: symbol not found"
+                end
             %NumC{n: n} ->
                 %NumV{n: n}
             %StringC{str: str} ->
@@ -64,16 +68,20 @@ defmodule Main do
                         else
                             interp(el, env)
                         end
+                    _ ->
+                        raise "ZNQR: conditional must test a boolean"
                 end
             %LamC{param: param, body: body} ->
                 %ClosV{param: param, body: body, env: env}
             %AppC{fun: fun, args: args} ->
                 case interp(fun, env) do
                     %PrimV{p: p} ->
-                        IO.puts "TODO: prim handler"
+                        raise "not implemented: primitive handler"
                     %ClosV{param: param, body: body, env: env2} ->
                         args_eval = Enum.map(args, fn arg -> interp(arg, env) end)
                         interp(body, extend_env(env2, param, args_eval))
+                    _ ->
+                        raise "ZNQR: value not callable"
                 end
         end
     end
@@ -83,6 +91,9 @@ defmodule Main do
     # values: list of values
     # returns: environment
     def extend_env(env, symbols, values) do
+        if length(symbols) != length(values) do
+            raise "ZNQR: mismatching arg/param count"
+        end
         List.foldl(Enum.zip(symbols, values), env,
             fn kv, acc ->
                 Map.put(acc, elem(kv, 0), elem(kv, 1))
