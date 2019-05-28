@@ -1,5 +1,11 @@
 ExUnit.start()
 
+# Data Definitions
+
+# ExprC: IdC | NumC | StringC | IfC | AppC | LamC
+# Value: BoolV | PrimV | ClosV | StringV | NumV
+# Env: %{atom: Value}
+
 defmodule IdC do
     defstruct [:s]
 end
@@ -45,9 +51,8 @@ defmodule NumV do
 end
 
 defmodule Main do
-    # exp: expression
-    # env: environment
-    # returns: expression
+    # Evaluate an expression
+    # (ExprC, Env) -> Value
     def interp(exp, env) do
         case exp do
             %IdC{s: s} ->
@@ -86,10 +91,8 @@ defmodule Main do
         end
     end
 
-    # env: environment
-    # symbols: list of symbols
-    # values: list of values
-    # returns: environment
+    # Add values to an environment
+    # (Env, list of atom, list of Value) -> Env
     def extend_env(env, symbols, values) do
         if length(symbols) != length(values) do
             raise "ZNQR: mismatching arg/param count"
