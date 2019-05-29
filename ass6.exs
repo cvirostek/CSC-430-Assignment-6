@@ -93,7 +93,7 @@ defmodule Main do
     end
 
     ## Perform primitive operations given an op & 2 args.
-    # (op, args) -> Value
+    # (atom, list of Value) -> Value
     def prim_handler(op, args) do
       arg1 = Enum.at(args, 0)
       arg2 = Enum.at(args, 1)
@@ -104,7 +104,7 @@ defmodule Main do
         :- -> %NumV{n: arg1.n - arg2.n}
         :* -> %NumV{n: arg1.n * arg2.n}
         :/ -> %NumV{n: arg1.n / arg2.n}
-        :<= -> %NumV{n: arg1.n <= arg2.n}
+        :<= -> %BoolV{b: arg1.n <= arg2.n}
       end
     end
 
@@ -150,6 +150,12 @@ defmodule Main do
         }
     end
 
+    # Evaluate expression starting with a top-level environment
+    # (ExprC) -> string
+    def top_interp(exp) do
+        serialize(interp(exp, top_level_env()))
+    end
+
     def main do
       interp(
         %AppC{
@@ -164,6 +170,31 @@ end
 
 defmodule Tests do
     use ExUnit.Case
+
+    test "top_interp" do
+        program = %AppC{
+            fun: %LamC{
+                param: [:x, :y],
+                body: %IfC{
+                    test: %AppC{
+                        fun: %IdC{s: :<=},
+                        args: [%IdC{s: :x}, %IdC{s: :y}]
+                    },
+                    th: %AppC{
+                        fun: %IdC{s: :-},
+                        args: [%IdC{s: :y}, %IdC{s: :x}]
+                    },
+                    el: %AppC{
+                        fun: %IdC{s: :-},
+                        args: [%IdC{s: :x}, %IdC{s: :y}]
+                    }
+                }
+            },
+            args: [%NumC{n: 75}, %NumC{n: 100}]
+        }
+
+        assert Main.top_interp(program) == "25"
+    end
 
     test "interp" do
         result = Main.interp(%AppC{fun: %LamC{param: [:x, :y], body: %IdC{s: :y}}, args: [%NumC{n: 1}, %NumC{n: 2}]}, %{})
