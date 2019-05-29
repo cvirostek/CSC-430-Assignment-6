@@ -81,7 +81,8 @@ defmodule Main do
             %AppC{fun: fun, args: args} ->
                 case interp(fun, env) do
                     %PrimV{p: p} ->
-                        raise "not implemented: primitive handler"
+                        args_eval = Enum.map(args, fn arg -> interp(arg, env) end)
+                        prim_handler(p, args_eval)
                     %ClosV{param: param, body: body, env: env2} ->
                         args_eval = Enum.map(args, fn arg -> interp(arg, env) end)
                         interp(body, extend_env(env2, param, args_eval))
@@ -89,6 +90,22 @@ defmodule Main do
                         raise "ZNQR: value not callable"
                 end
         end
+    end
+
+    ## Perform primitive operations given an op & 2 args.
+    # (op, args) -> Value
+    def prim_handler(op, args) do
+      arg1 = Enum.at(args, 0)
+      arg2 = Enum.at(args, 1)
+
+      case op do
+        :equal? -> %BoolV{b: arg1 == arg2}
+        :+ -> %NumV{n: arg1.n + arg2.n}
+        :- -> %NumV{n: arg1.n - arg2.n}
+        :* -> %NumV{n: arg1.n * arg2.n}
+        :/ -> %NumV{n: arg1.n / arg2.n}
+        :<= -> %NumV{n: arg1.n <= arg2.n}
+      end
     end
 
     # Add values to an environment
@@ -120,8 +137,28 @@ defmodule Main do
         end
     end
 
+    def top_level_env() do
+        env = %{
+          :+ => %PrimV{p: :+},
+          :- => %PrimV{p: :-},
+          :* => %PrimV{p: :*},
+          :/ => %PrimV{p: :/},
+          :<= => %PrimV{p: :<=},
+          :equal? => %PrimV{p: :equal?},
+          :true => %BoolV{b: true},
+          :false => %BoolV{b: false},
+        }
+    end
+
     def main do
-        interp(%AppC{fun: %LamC{param: [:x, :y], body: %IdC{s: :y}}, args: [%NumC{n: 1}, %NumC{n: 2}]}, %{})
+      interp(
+        %AppC{
+          fun: %LamC{param: [:x, :y],
+          body: %IdC{s: :y}},
+          args: [%NumC{n: 1}, %NumC{n: 2}]
+        },
+        top_level_env()
+      )
     end
 end
 
@@ -140,6 +177,25 @@ defmodule Tests do
 
     test "serialize" do
         assert Main.serialize(%NumV{n: 1}) == "1"
+    end
+
+    test "prim_handler" do
+      args = [%NumV{n: 3}, %NumV{n: 4}]
+
+      assert Main.prim_handler(:+, args) == %NumV{n: 7}
+      assert Main.prim_handler(:-, args) == %NumV{n: -1}
+      assert Main.prim_handler(:*, args) == %NumV{n: 12}
+      assert Main.prim_handler(:/, args) == %NumV{n: 0.75}
+      assert Main.prim_handler(:equal?, args) == %BoolV{b: false}
+    end
+
+    test "interp_prim" do
+      result = Main.interp(
+        %AppC{fun: %IdC{s: :+}, args: [%NumC{n: 55}, %NumC{n: 45}]},
+        Main.top_level_env()
+      )
+
+      assert Main.serialize(result) == "100"
     end
 end
 
