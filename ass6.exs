@@ -103,6 +103,23 @@ defmodule Main do
             end)
     end
 
+    # Turn values into strings
+    # (Value) -> string
+    def serialize(value) do
+        case value do
+            %ClosV{} ->
+                "#<procedure>"
+            %PrimV{} ->
+                "#<primop>"
+            %BoolV{b: b} ->
+                if b, do: "true", else: "false"
+            %StringV{str: str} ->
+                "\\\"" <> str <> "\\\""
+            %NumV{n: n} ->
+                to_string(n)
+        end
+    end
+
     def main do
         interp(%AppC{fun: %LamC{param: [:x, :y], body: %IdC{s: :y}}, args: [%NumC{n: 1}, %NumC{n: 2}]}, %{})
     end
@@ -119,6 +136,10 @@ defmodule Tests do
     test "extend_env" do
         result = Main.extend_env(%{a: %NumV{n: 0}}, [:b, :c, :d], [%NumV{n: 1}, %NumV{n: 2}, %NumV{n: 3}])
         assert result == %{a: %NumV{n: 0}, b: %NumV{n: 1}, c: %NumV{n: 2}, d: %NumV{n: 3}}
+    end
+
+    test "serialize" do
+        assert Main.serialize(%NumV{n: 1}) == "1"
     end
 end
 
