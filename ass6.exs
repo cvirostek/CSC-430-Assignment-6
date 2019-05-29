@@ -171,7 +171,29 @@ end
 defmodule Tests do
     use ExUnit.Case
 
-    test "top_interp" do
+    test "top_interp 1" do
+        program = %AppC{
+            fun: %IdC{s: :<=},
+            args: [%NumC{n: 5}, %NumC{n: 10}]
+        }
+        assert Main.top_interp(program) == "true"
+    end
+
+    test "top_interp 2" do
+        program = %AppC{
+            fun: %LamC{
+                param: [:x, :y],
+                body: %AppC{
+                    fun: %IdC{s: :+},
+                    args: [%IdC{s: :x}, %IdC{s: :y}]
+                }
+            },
+            args: [%NumC{n: 5}, %NumC{n: 10}]
+        }
+        assert Main.top_interp(program) == "15"
+    end
+
+    test "top_interp 3" do
         program = %AppC{
             fun: %LamC{
                 param: [:x, :y],
